@@ -63,8 +63,8 @@ const WalkDiscoveryDashboard = () => {
         // --- FIX START ---
         // Extract the lastChecked timestamp from the API response
         // Assuming 'data.lastChecked' exists and is a valid date string or timestamp
-        if (data && data.lastChecked) {
-          setLastChecked(new Date(data.lastChecked));
+        if (data && data.lastScrapeTime) {
+          setLastChecked(new Date(data.lastScrapeTime));
         } else {
           // Fallback to client's current time if API doesn't provide it
           setLastChecked(new Date());

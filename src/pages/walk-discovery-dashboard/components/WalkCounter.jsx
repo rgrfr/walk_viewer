@@ -3,13 +3,33 @@ import Icon from '../../../components/AppIcon';
 
 const WalkCounter = ({ filteredCount, totalCount, lastChecked, includePastWalks, onTogglePastWalks }) => {
   const formatLastChecked = (timestamp) => {
+    // If timestamp is null or invalid, return a placeholder
+    if (!timestamp) {
+      return 'N/A'; // or 'loading...' or ''
+    }
+
     const now = new Date();
     const checked = new Date(timestamp);
-    const diffMinutes = Math.floor((now - checked) / (1000 * 60));
+    const diffMilliseconds = now - checked; // Difference in milliseconds
 
-    if (diffMinutes < 1) return 'just now';
-    if (diffMinutes === 1) return '1 minute ago';
-    return `${diffMinutes} minutes ago`;
+    const diffMinutes = Math.floor(diffMilliseconds / (1000 * 60));
+    const diffHours = Math.floor(diffMilliseconds / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMilliseconds / (1000 * 60 * 60 * 24));
+
+    if (diffMinutes < 1) {
+      return 'just now';
+    } else if (diffMinutes < 60) { // Less than an hour
+      return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+    } else if (diffHours < 24) { // Less than a day
+      return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+    } else if (diffDays < 7) { // Less than a week
+      return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+    } else {
+      // For anything over a week, be less specific
+      return 'more than a week ago';
+      // Alternatively, to show an exact date:
+      // return checked.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
   };
 
   return (
@@ -30,7 +50,7 @@ const WalkCounter = ({ filteredCount, totalCount, lastChecked, includePastWalks,
               onChange={(e) => onTogglePastWalks(e.target.checked)}
               className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
             />
-            <span> include past walks</span>
+            <span>Include past walks</span>
           </label>
         </div>
 

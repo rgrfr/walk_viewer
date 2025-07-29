@@ -43,9 +43,47 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500
   `;
 
+  // Function to handle the ripple effect on button click
+  // This is a more robust way to handle ripples than CSS :active pseudo-elements
+  const addRipple = (event) => {
+    const button = event.currentTarget;
+    const ripple = document.createElement('span');
+    const diameter = Math.max(button.clientWidth, button.clientHeight);
+    const radius = diameter / 2;
+
+    ripple.style.width = ripple.style.height = `${diameter}px`;
+    ripple.style.left = `${event.clientX - button.offsetLeft - radius}px`;
+    ripple.style.top = `${event.clientY - button.offsetTop - radius}px`;
+    
+    // Determine ripple color based on button's hover theme
+    let rippleColor = 'rgba(255, 255, 255, 0.4)'; // Default white for green-hovered
+    if (button.classList.contains('hover-blue')) {
+      rippleColor = 'rgba(29, 78, 216, 0.3)'; // blue-700 with opacity
+    } else if (button.classList.contains('hover-neutral')) {
+        rippleColor = 'rgba(55, 65, 81, 0.3)'; // gray-700 with opacity
+    }
+    ripple.style.backgroundColor = rippleColor;
+
+    ripple.classList.add('ripple-span');
+
+    // Remove existing ripple spans to prevent multiple animations stacking
+    const existingRipple = button.querySelector('.ripple-span');
+    if (existingRipple) {
+      existingRipple.remove();
+    }
+
+    button.appendChild(ripple);
+
+    // Remove the ripple element after animation
+    ripple.addEventListener('animationend', () => {
+      ripple.remove();
+    });
+  };
+
   // Custom CSS for tooltips and ripple effect
-  // Embedded directly for simplicity, but could be in a separate CSS file
+  // This CSS should preferably be moved to your main CSS file (e.g., src/index.css)
   const buttonStyle = `
+    /* Tooltip styles */
     .action-button::before {
       content: attr(data-tooltip);
       position: absolute;
@@ -85,33 +123,22 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
       visibility: visible;
     }
 
-    /* Ripple effect */
-    .action-button::before { /* Re-using ::before for tooltip, so using ::after for ripple */
-      content: '';
+    /* Ripple effect (using dynamically created span) */
+    .ripple-span {
       position: absolute;
       border-radius: 50%;
-      opacity: 0;
-      pointer-events: none; /* Allows clicks to pass through */
+      opacity: 1;
       transform: scale(0);
-      transition: transform 0.5s ease-out, opacity 0.5s ease-out;
-      background-color: rgba(255, 255, 255, 0.4); /* Default ripple color */
+      animation: ripple-animation 0.5s ease-out forwards;
+      pointer-events: none; /* Allows clicks to pass through */
       z-index: 1; /* Below tooltip, above button content */
     }
 
-    /* Green hover ripple override for specific buttons */
-    .action-button.hover-green:active::after {
-      background-color: rgba(21, 128, 61, 0.3); /* green-700 with opacity */
-    }
-
-    /* Blue hover ripple override for specific buttons */
-    .action-button.hover-blue:active::after {
-      background-color: rgba(29, 78, 216, 0.3); /* blue-700 with opacity */
-    }
-
-
-    .action-button:active::after {
-      transform: scale(2); /* Expands the ripple */
-      opacity: 0; /* Fades out */
+    @keyframes ripple-animation {
+      to {
+        transform: scale(2.5);
+        opacity: 0;
+      }
     }
   `;
 
@@ -165,9 +192,9 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
       <div className="flex flex-wrap gap-2"> {/* Uses gap-2 for consistent spacing */}
         <Button
           className={`${baseButtonClasses} hover:bg-green-50 hover:border-green-400 hover:text-green-600 hover:shadow-green-300 action-button hover-green`}
-          size="xs" // Retain original size prop for component compatibility
+          size="xs"
           iconName="Calendar"
-          onClick={() => onCalendarAdd(walk, 'google')}
+          onClick={(e) => { addRipple(e); onCalendarAdd(walk, 'google'); }}
           data-tooltip="Add details to your Google calendar"
         >
           Google
@@ -176,7 +203,7 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
           className={`${baseButtonClasses} hover:bg-green-50 hover:border-green-400 hover:text-green-600 hover:shadow-green-300 action-button hover-green`}
           size="xs"
           iconName="Calendar"
-          onClick={() => onCalendarAdd(walk, 'outlook')}
+          onClick={(e) => { addRipple(e); onCalendarAdd(walk, 'outlook'); }}
           data-tooltip="Add details to your Outlook calendar"
         >
           Outlook
@@ -185,7 +212,7 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
           className={`${baseButtonClasses} hover:bg-green-50 hover:border-green-400 hover:text-green-600 hover:shadow-green-300 action-button hover-green`}
           size="xs"
           iconName="Calendar"
-          onClick={() => onCalendarAdd(walk, 'apple')}
+          onClick={(e) => { addRipple(e); onCalendarAdd(walk, 'apple'); }}
           data-tooltip="Download .ics for Apple calendar"
         >
           Apple
@@ -195,7 +222,7 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
           className={`${baseButtonClasses} hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 hover:shadow-blue-300 action-button hover-blue`}
           size="xs"
           iconName="Facebook"
-          onClick={() => onFacebookShare(walk)}
+          onClick={(e) => { addRipple(e); onFacebookShare(walk); }}
           data-tooltip="Copy text to a Facebook post"
         >
           Share
@@ -206,7 +233,7 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
             className={`${baseButtonClasses} hover:bg-green-50 hover:border-green-400 hover:text-green-600 hover:shadow-green-300 action-button hover-green`}
             size="xs"
             iconName="MapPin"
-            onClick={() => onLocationClick(walk.postcode)}
+            onClick={(e) => { addRipple(e); onLocationClick(walk.postcode); }}
             data-tooltip="Search for the postcode on Google Maps"
           >
             Location
@@ -219,7 +246,7 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
               className={`${baseButtonClasses} hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 hover:shadow-blue-300 action-button hover-blue`}
               size="xs"
               iconName="Navigation"
-              onClick={() => onMeetClick(walk.what3words, 'web')}
+              onClick={(e) => { addRipple(e); onMeetClick(walk.what3words, 'web'); }}
               data-tooltip="Show the exact meeting place on what3words.com"
             >
               Meet
@@ -228,12 +255,25 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
               className={`${baseButtonClasses} hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 hover:shadow-blue-300 action-button hover-blue`}
               size="xs"
               iconName="Smartphone"
-              onClick={() => onMeetClick(walk.what3words, 'app')}
+              onClick={(e) => { addRipple(e); onMeetClick(walk.what3words, 'app'); }}
               data-tooltip="Mobile only: Open what3words app at meeting place"
             >
               w3w
             </Button>
           </>
+        )}
+
+        {/* New 'Details' button */}
+        {walk.details_url && (
+          <Button
+            className={`${baseButtonClasses} bg-gray-700 text-white border-gray-700 hover:bg-gray-600 hover:border-gray-600 hover:shadow-gray-400 action-button hover-neutral`}
+            size="xs"
+            iconName="Globe" // Using a 'Globe' or 'ExternalLink' icon is good for web links
+            onClick={(e) => { addRipple(e); window.open(walk.details_url, '_blank'); }}
+            data-tooltip="View full walk details on the Ramblers website"
+          >
+            Details
+          </Button>
         )}
       </div>
     </div>
