@@ -13,7 +13,7 @@ const HeroIllustration = () => {
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="bg-black/30 backdrop-blur-sm rounded-lg px-6 py-4">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-white mb-2">Discover Local Walks</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">Group Walk Finder</h1>
             <p className="text-white/90 text-sm">discover walks • add to calendar • share to facebook</p>
           </div>
         </div>
