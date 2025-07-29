@@ -32,8 +32,93 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
     }
   };
 
+  // Base styles for all action buttons
+  // min-w-[90px] chosen to comfortably fit common labels like "Location" and "Outlook"
+  // flex-grow makes them take up equal available space
+  const baseButtonClasses = `
+    flex-grow min-w-[90px] text-xs font-medium py-2 px-3 rounded-full
+    border border-gray-300 bg-white text-gray-700
+    shadow-md shadow-gray-200 transition-all duration-200 ease-in-out
+    relative overflow-hidden group // 'group' class for tooltip targeting
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500
+  `;
+
+  // Custom CSS for tooltips and ripple effect
+  // Embedded directly for simplicity, but could be in a separate CSS file
+  const buttonStyle = `
+    .action-button::before {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px); /* Position above the button */
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.75);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      font-size: 0.75rem; /* text-xs */
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+      z-index: 10; /* Ensure tooltip is above other elements */
+    }
+
+    .action-button::after {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 4px); /* Position just above the tooltip arrow */
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      width: 8px;
+      height: 8px;
+      background-color: rgba(0, 0, 0, 0.75);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+      z-index: 10;
+    }
+
+    .action-button:hover::before,
+    .action-button:hover::after {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Ripple effect */
+    .action-button::before { /* Re-using ::before for tooltip, so using ::after for ripple */
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none; /* Allows clicks to pass through */
+      transform: scale(0);
+      transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+      background-color: rgba(255, 255, 255, 0.4); /* Default ripple color */
+      z-index: 1; /* Below tooltip, above button content */
+    }
+
+    /* Green hover ripple override for specific buttons */
+    .action-button.hover-green:active::after {
+      background-color: rgba(21, 128, 61, 0.3); /* green-700 with opacity */
+    }
+
+    /* Blue hover ripple override for specific buttons */
+    .action-button.hover-blue:active::after {
+      background-color: rgba(29, 78, 216, 0.3); /* blue-700 with opacity */
+    }
+
+
+    .action-button:active::after {
+      transform: scale(2); /* Expands the ripple */
+      opacity: 0; /* Fades out */
+    }
+  `;
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 mb-3 shadow-sm hover:shadow-md transition-shadow">
+      <style>{buttonStyle}</style> {/* Inject custom CSS */}
+
       {/* Title - now spans full width */}
       <h3 className="font-semibold text-gray-900 text-lg mb-2">
         {walk.title}
@@ -77,56 +162,52 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
       )}
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap gap-2">
-        {/* Calendar Buttons */}
-        <div className="flex space-x-1">
-          <Button
-            variant="outline"
-            size="xs"
-            iconName="Calendar"
-            onClick={() => onCalendarAdd(walk, 'google')}
-            className="text-xs rounded-lg"
-          >
-            Google
-          </Button>
-          <Button
-            variant="outline"
-            size="xs"
-            iconName="Calendar"
-            onClick={() => onCalendarAdd(walk, 'outlook')}
-            className="text-xs rounded-lg"
-          >
-            Outlook
-          </Button>
-          <Button
-            variant="outline"
-            size="xs"
-            iconName="Calendar"
-            onClick={() => onCalendarAdd(walk, 'apple')}
-            className="text-xs rounded-lg"
-          >
-            Apple
-          </Button>
-        </div>
-
-        {/* Social & Location Buttons */}
+      <div className="flex flex-wrap gap-2"> {/* Uses gap-2 for consistent spacing */}
         <Button
-          variant="outline"
+          className={`${baseButtonClasses} hover:bg-green-50 hover:border-green-400 hover:text-green-600 hover:shadow-green-300 action-button hover-green`}
+          size="xs" // Retain original size prop for component compatibility
+          iconName="Calendar"
+          onClick={() => onCalendarAdd(walk, 'google')}
+          data-tooltip="Add details to your Google calendar"
+        >
+          Google
+        </Button>
+        <Button
+          className={`${baseButtonClasses} hover:bg-green-50 hover:border-green-400 hover:text-green-600 hover:shadow-green-300 action-button hover-green`}
+          size="xs"
+          iconName="Calendar"
+          onClick={() => onCalendarAdd(walk, 'outlook')}
+          data-tooltip="Add details to your Outlook calendar"
+        >
+          Outlook
+        </Button>
+        <Button
+          className={`${baseButtonClasses} hover:bg-green-50 hover:border-green-400 hover:text-green-600 hover:shadow-green-300 action-button hover-green`}
+          size="xs"
+          iconName="Calendar"
+          onClick={() => onCalendarAdd(walk, 'apple')}
+          data-tooltip="Download .ics for Apple calendar"
+        >
+          Apple
+        </Button>
+
+        <Button
+          className={`${baseButtonClasses} hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 hover:shadow-blue-300 action-button hover-blue`}
           size="xs"
           iconName="Facebook"
           onClick={() => onFacebookShare(walk)}
-          className="text-xs rounded-lg"
+          data-tooltip="Copy text to a Facebook post"
         >
           Share
         </Button>
 
         {walk.postcode && (
           <Button
-            variant="outline"
+            className={`${baseButtonClasses} hover:bg-green-50 hover:border-green-400 hover:text-green-600 hover:shadow-green-300 action-button hover-green`}
             size="xs"
             iconName="MapPin"
             onClick={() => onLocationClick(walk.postcode)}
-            className="text-xs rounded-lg"
+            data-tooltip="Search for the postcode on Google Maps"
           >
             Location
           </Button>
@@ -135,20 +216,20 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
         {walk.what3words && (
           <>
             <Button
-              variant="outline"
+              className={`${baseButtonClasses} hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 hover:shadow-blue-300 action-button hover-blue`}
               size="xs"
               iconName="Navigation"
               onClick={() => onMeetClick(walk.what3words, 'web')}
-              className="text-xs rounded-lg"
+              data-tooltip="Show the exact meeting place on what3words.com"
             >
               Meet
             </Button>
             <Button
-              variant="outline"
+              className={`${baseButtonClasses} hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 hover:shadow-blue-300 action-button hover-blue`}
               size="xs"
               iconName="Smartphone"
               onClick={() => onMeetClick(walk.what3words, 'app')}
-              className="text-xs rounded-lg"
+              data-tooltip="Mobile only: Open what3words app at meeting place"
             >
               w3w
             </Button>
