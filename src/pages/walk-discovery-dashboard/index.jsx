@@ -12,13 +12,13 @@ const WalkDiscoveryDashboard = () => {
   const [filteredWalks, setFilteredWalks] = useState([]);
   const [selectedDays, setSelectedDays] = useState(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
 
-  // FIX: Initialize selectedGroups with the full "Royston Group" name.
-  // This is the primary default selection.
   const [selectedGroups, setSelectedGroups] = useState(['Royston Group']);
 
   const [includePastWalks, setIncludePastWalks] = useState(false);
   const [availableGroups, setAvailableGroups] = useState([]);
-  const [lastChecked, setLastChecked] = useState(new Date());
+  // Initialize lastChecked to null or an empty string, or handle initial loading state
+  // to avoid showing 'just now' before data arrives.
+  const [lastChecked, setLastChecked] = useState(null);
   const [facebookModal, setFacebookModal] = useState({ isOpen: false, walk: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,9 +30,8 @@ const WalkDiscoveryDashboard = () => {
       setError(null);
 
       try {
-        // Set a timeout for the fetch request
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         const response = await fetch('https://rogerfrost.com/api/get_walks.php', {
           method: 'GET',
@@ -40,7 +39,7 @@ const WalkDiscoveryDashboard = () => {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
           },
-          mode: 'cors', // Explicitly set CORS mode
+          mode: 'cors',
           signal: controller.signal
         });
 
@@ -57,26 +56,35 @@ const WalkDiscoveryDashboard = () => {
 
         const data = await response.json();
 
-        // Ensure data is an array
+        // Assume the 'walks' data is directly the array, or nested under 'walks' or 'data' key.
+        // And 'lastChecked' is a direct property of the main data object.
         const walksData = Array.isArray(data) ? data : (data?.walks || data?.data || []);
+
+        // --- FIX START ---
+        // Extract the lastChecked timestamp from the API response
+        // Assuming 'data.lastChecked' exists and is a valid date string or timestamp
+        if (data && data.lastChecked) {
+          setLastChecked(new Date(data.lastChecked));
+        } else {
+          // Fallback to client's current time if API doesn't provide it
+          setLastChecked(new Date());
+        }
+        // --- FIX END ---
 
         if (!Array.isArray(walksData)) {
           throw new Error('Invalid data format received from API');
         }
 
         setWalks(walksData);
-        setLastChecked(new Date());
+
 
         // Extract unique groups
         const groups = [...new Set(walksData.map(walk => walk?.group_name).filter(Boolean))];
         setAvailableGroups(groups);
 
-        // FIX: Correct the conditional fallback check.
-        // If 'Royston Group' is NOT among the fetched groups, then fall back to the first available group.
         if (groups.length > 0 && !groups.includes('Royston Group')) {
             setSelectedGroups([groups[0]]);
         }
-        // If 'Royston Group' IS available, the initial `useState(['Royston Group'])` will persist.
 
       } catch (error) {
         console.error('Error fetching walks:', error);
@@ -93,9 +101,9 @@ const WalkDiscoveryDashboard = () => {
 
         setError(errorMessage);
 
-        // Fallback to empty array
         setWalks([]);
         setAvailableGroups([]);
+        setLastChecked(null); // Clear lastChecked on error
       } finally {
         setLoading(false);
       }
@@ -111,18 +119,15 @@ const WalkDiscoveryDashboard = () => {
   const filterWalks = () => {
     let filtered = [...walks];
 
-    // Filter by past walks
     if (!includePastWalks) {
       const now = new Date();
       filtered = filtered.filter(walk => new Date(walk?.walk_date) >= now);
     }
 
-    // Filter by groups
     if (selectedGroups.length > 0) {
       filtered = filtered.filter(walk => selectedGroups.includes(walk?.group_name));
     }
 
-    // Filter by days
     if (selectedDays.length > 0) {
       filtered = filtered.filter(walk => {
         const walkDate = new Date(walk?.walk_date);
@@ -132,7 +137,6 @@ const WalkDiscoveryDashboard = () => {
       });
     }
 
-    // Sort by date ascending
     filtered.sort((a, b) => new Date(a?.walk_date) - new Date(b?.walk_date));
 
     setFilteredWalks(filtered);
@@ -156,7 +160,7 @@ const WalkDiscoveryDashboard = () => {
 
   const handleCalendarAdd = (walk, platform) => {
     const startDate = new Date(walk.walk_date);
-    const endDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000)); // Assume 3 hour duration
+    const endDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000));
 
     const formatDateForCalendar = (date) => {
       return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
@@ -186,7 +190,6 @@ const WalkDiscoveryDashboard = () => {
         break;
 
       case 'apple':
-        // Generate .ics file
         const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Walk Viewer//Walk Event//EN
@@ -228,7 +231,6 @@ END:VCALENDAR`;
       const w3wUrl = `https://what3words.com/${cleanW3W}`;
       window.open(w3wUrl, '_blank');
     } else if (type === 'app') {
-      // Android app intent
       const appUrl = `intent://what3words.com/${cleanW3W}#Intent;scheme=https;package=com.what3words.android;end`;
       window.location.href = appUrl;
     }
@@ -289,7 +291,7 @@ END:VCALENDAR`;
     <div className="min-h-screen bg-gray-100 pt-16">
       <Helmet>
         <title>Walk Discovery Dashboard - Walk Viewer</title>
-        <meta name="description" content="Discover and join local group hiking events with calendar integration and location services" />
+        <meta name="description" content="Discover and join local group hiking events with calendar integration and calendar services" />
       </Helmet>
 
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -309,7 +311,8 @@ END:VCALENDAR`;
         <WalkCounter
           filteredCount={filteredWalks.length}
           totalCount={walks.length}
-          lastChecked={lastChecked}
+          // Pass null if lastChecked is null to avoid issues in WalkCounter's formatLastChecked
+          lastChecked={lastChecked || new Date()}
           includePastWalks={includePastWalks}
           onTogglePastWalks={setIncludePastWalks}
         />
