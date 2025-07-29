@@ -15,16 +15,17 @@ const DayFilter = ({ selectedDays, onDayToggle }) => {
   return (
     <div className="mb-4">
       <h3 className="text-sm font-medium text-gray-700 mb-2">Filter by Day</h3>
-      <div className="flex space-x-1 overflow-x-auto pb-2">
+      <div className="flex flex-wrap gap-1"> {/* Changed classes here */}
         {days.map((day) => (
           <Button
             key={day.key}
             variant={selectedDays.includes(day.key) ? "default" : "outline"}
             size="sm"
             onClick={() => onDayToggle(day.key)}
-            className={`flex-shrink-0 min-w-[32px] w-[32px] text-xs ${
-              selectedDays.includes(day.key) 
-                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500' :'hover:bg-orange-500 hover:border-orange-500 hover:text-white'
+            className={`flex-grow min-w-[40px] text-xs ${ // Changed classes here
+              selectedDays.includes(day.key)
+                ? 'bg-orange-500 hover:bg-orange-600 text-white border-orange-500'
+                : 'hover:bg-orange-500 hover:border-orange-500 hover:text-white'
             }`}
           >
             {day.label}
