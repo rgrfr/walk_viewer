@@ -34,46 +34,44 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 mb-3 shadow-sm hover:shadow-md transition-shadow">
-      {/* Header */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 text-lg mb-1 line-clamp-2">
-            {walk.title}
-          </h3>
-          <div className="flex items-center space-x-3 text-sm text-gray-600">
-            <span className="flex items-center">
-              <Icon name="Calendar" size={16} className="mr-1" />
-              {formatDate(walk.walk_date)}
-            </span>
-            <span className="flex items-center">
-              <Icon name="Clock" size={16} className="mr-1" />
-              {formatTime(walk.walk_date)}
-            </span>
-          </div>
-        </div>
-        <div className="ml-3 text-right">
-          <div className="text-sm font-medium text-gray-900 mb-1">
-            {walk.distance} miles
-          </div>
-          {/* Group name and difficulty on same line with color-coded backgrounds */}
-          <div className="flex items-center space-x-2 text-xs">
-            {walk.group_name && (
-              <span className="inline-block bg-blue-100 text-blue-800 font-medium px-2 py-1 rounded-full">
-                {walk.group_name}
-              </span>
-            )}
-            {walk.difficulty && (
-              <span className={`inline-block px-2 py-1 rounded-full font-medium ${getDifficultyColor(walk.difficulty)}`}>
-                {walk.difficulty}
-              </span>
-            )}
-          </div>
-        </div>
+      {/* Title - now spans full width */}
+      <h3 className="font-semibold text-gray-900 text-lg mb-2">
+        {walk.title}
+      </h3>
+
+      {/* Date, Time, Distance, Group, Difficulty - all on one line, wrapping on mobile */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600 mb-3">
+        {/* Date */}
+        <span className="flex items-center">
+          <Icon name="Calendar" size={16} className="mr-1" />
+          {formatDate(walk.walk_date)}
+        </span>
+        {/* Time */}
+        <span className="flex items-center">
+          <Icon name="Clock" size={16} className="mr-1" />
+          {formatTime(walk.walk_date)}
+        </span>
+        {/* Distance (miles suffix removed) */}
+        <span className="font-medium text-gray-900">
+          {walk.distance}
+        </span>
+        {/* Group name */}
+        {walk.group_name && (
+          <span className="inline-block bg-blue-100 text-blue-800 font-medium px-2 py-1 rounded-full text-xs">
+            {walk.group_name}
+          </span>
+        )}
+        {/* Difficulty */}
+        {walk.difficulty && (
+          <span className={`inline-block px-2 py-1 rounded-full font-medium text-xs ${getDifficultyColor(walk.difficulty)}`}>
+            {walk.difficulty}
+          </span>
+        )}
       </div>
 
-      {/* Description */}
+      {/* Description - now displays in full */}
       {walk.description && (
-        <p className="text-gray-700 text-sm mb-4 line-clamp-3">
+        <p className="text-gray-700 text-sm mb-4">
           {walk.description}
         </p>
       )}

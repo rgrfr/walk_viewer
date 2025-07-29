@@ -14,7 +14,7 @@ const DayFilter = ({ selectedDays, onDayToggle }) => {
 
   return (
     <div className="mb-4">
-      <h3 className="text-sm font-medium text-gray-700 mb-2">Filter by Day</h3>
+      <h3 className="text-sm font-medium text-gray-700 mb-2">filter by Day</h3>
       <div className="flex flex-wrap gap-1"> {/* Changed classes here */}
         {days.map((day) => (
           <Button

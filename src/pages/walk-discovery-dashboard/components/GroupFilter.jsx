@@ -4,18 +4,18 @@ import Button from '../../../components/ui/Button';
 const GroupFilter = ({ groups, selectedGroups, onGroupToggle }) => {
   const truncateGroupName = (name) => {
     const truncateMap = {
-      'Royston': 'Royston',
-      'Cambridge': 'Cambridge',
-      'East Hertfordshire': 'East Herts',
-      'North Hertfordshire': 'North Herts',
-      'Walk Cambridge': 'Walk Camb',
-      'Staines': 'Staines',
-      'Inner London': 'Inner Lon',
-      'Ivel': 'Ivel',
-      'Sudbury': 'Sudbury',
-      'Uttlesford': 'Uttlesford',
-      'Newmarket': 'Newmarket',
-      'Huntingdon': 'Huntingdon'
+      'Royston Group': 'Royston',
+      'Cambridge Group': 'Cambridge',
+      'East Hertfordshire Group': 'East Herts',
+      'North Hertfordshire Group': 'North Herts',
+      'Walk Cambridge Group': 'Walk Cambs',
+      'Staines Group': 'Staines',
+      'Inner London Group': 'London',
+      'Ivel Valley Group': 'Ivel',
+      'Sudbury Group': 'Sudbury',
+      'Uttlesford Group': 'Uttlesford',
+      'Newmarket & District Group': 'Newmarket',
+      'Huntingdonshire Group': 'Huntingdon'
     };
     
     return truncateMap[name] || name.substring(0, 10);
@@ -38,7 +38,7 @@ const GroupFilter = ({ groups, selectedGroups, onGroupToggle }) => {
   // Always show the filter section, even if groups array is empty
   return (
     <div className="mb-4">
-      <h3 className="text-sm font-medium text-gray-700 mb-2">Filter by Group</h3>
+      <h3 className="text-sm font-medium text-gray-700 mb-2">filter by Group</h3>
       <div className="flex flex-wrap gap-2">
         {groups.length > 0 ? (
           <>
