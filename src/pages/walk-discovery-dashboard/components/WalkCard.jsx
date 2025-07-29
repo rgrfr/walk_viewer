@@ -44,7 +44,6 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
   `;
 
   // Function to handle the ripple effect on button click
-  // This is a more robust way to handle ripples than CSS :active pseudo-elements
   const addRipple = (event) => {
     const button = event.currentTarget;
     const ripple = document.createElement('span');
@@ -184,7 +183,7 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
       {/* Description - now displays in full */}
       {walk.description && (
         <p className="text-gray-700 text-sm mb-4">
-          {walk.description}
+          {walk.description.replace(/\\'/g, "'")} {/* Sanitized description */}
         </p>
       )}
 
