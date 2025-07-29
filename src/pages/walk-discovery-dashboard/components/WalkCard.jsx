@@ -36,7 +36,7 @@ const WalkCard = ({ walk, onCalendarAdd, onFacebookShare, onLocationClick, onMee
   // min-w-[90px] chosen to comfortably fit common labels like "Location" and "Outlook"
   // flex-grow makes them take up equal available space
   const baseButtonClasses = `
-    flex-grow min-w-[90px] text-xs font-medium py-2 px-3 rounded-full
+    flex-grow min-w-[90px] text-xs font-medium py-2 px-3 rounded-xl
     border border-gray-300 bg-white text-gray-700
     shadow-md shadow-gray-200 transition-all duration-200 ease-in-out
     relative overflow-hidden group // 'group' class for tooltip targeting

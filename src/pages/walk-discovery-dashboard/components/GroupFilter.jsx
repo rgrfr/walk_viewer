@@ -63,7 +63,7 @@ const GroupFilter = ({ groups, selectedGroups, onGroupToggle }) => {
     text-xs             // Sets a small text size for compactness
     font-medium         // Applies a medium font weight
     py-2 px-3           // Provides internal padding for a comfortable button size
-    rounded-full        // Makes the button fully rounded (pill shape)
+    rounded-xl        // Makes the button fully rounded (pill shape)
     transition-all duration-200 ease-in-out // Smooths transitions for hover and active states
     relative overflow-hidden // Essential for containing the CSS ripple animation
     group-filter-button // Custom class used by the <style> block for the ripple effect
@@ -71,7 +71,7 @@ const GroupFilter = ({ groups, selectedGroups, onGroupToggle }) => {
 
   return (
     <div className="mb-4">
-      <h3 className="text-sm font-medium text-gray-700 mb-2">Filter by Group</h3>
+      <h3 className="text-sm font-medium text-gray-700 mb-2">filter by Group</h3>
       <div className="flex flex-wrap gap-2 justify-center sm:justify-start"> {/* Uses gap for spacing, centers on mobile, left-aligns on larger screens */}
         {groups.length > 0 ? (
           <>
