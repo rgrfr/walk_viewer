@@ -16,15 +16,12 @@ const WalkDiscoveryDashboard = () => {
 
   const [includePastWalks, setIncludePastWalks] = useState(false);
   const [availableGroups, setAvailableGroups] = useState([]);
-  // Initialize lastChecked to null or an empty string, or handle initial loading state
-  // to avoid showing 'just now' before data arrives.
-  const [lastChecked, setLastChecked] = useState(null);
+  const [lastChecked, setLastChecked] = useState(null); // Initialize to null
   const [facebookModal, setFacebookModal] = useState({ isOpen: false, walk: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch walks from API
     const fetchWalks = async () => {
       setLoading(true);
       setError(null);
@@ -56,32 +53,33 @@ const WalkDiscoveryDashboard = () => {
 
         const data = await response.json();
 
-        // Assume the 'walks' data is directly the array, or nested under 'walks' or 'data' key.
-        // And 'lastChecked' is a direct property of the main data object.
-        const walksData = Array.isArray(data) ? data : (data?.walks || data?.data || []);
+        // Separate walks data from metadata like lastScrapeTime
+        let walksData = [];
+        let fetchedLastScrapeTime = null;
 
-        // --- FIX START ---
-        // Extract the lastChecked timestamp from the API response
-        // Assuming 'data.lastChecked' exists and is a valid date string or timestamp
-        if (data && data.lastScrapeTime) {
-          setLastChecked(new Date(data.lastScrapeTime));
+        if (Array.isArray(data)) {
+            walksData = data; // If data is directly the array
+        } else if (data && (data.walks || data.data)) {
+            walksData = data.walks || data.data; // If walks are nested under 'walks' or 'data'
+            fetchedLastScrapeTime = data.lastScrapeTime; // Extract from top-level object
         } else {
-          // Fallback to client's current time if API doesn't provide it
-          setLastChecked(new Date());
+            throw new Error('Invalid data format received from API');
         }
-        // --- FIX END ---
 
         if (!Array.isArray(walksData)) {
           throw new Error('Invalid data format received from API');
         }
 
         setWalks(walksData);
+        // Use the fetched lastScrapeTime, or fallback to current time if not provided
+        setLastChecked(fetchedLastScrapeTime ? new Date(fetchedLastScrapeTime) : new Date());
 
 
         // Extract unique groups
         const groups = [...new Set(walksData.map(walk => walk?.group_name).filter(Boolean))];
         setAvailableGroups(groups);
 
+        // If 'Royston Group' is NOT among the fetched groups, then fall back to the first available group.
         if (groups.length > 0 && !groups.includes('Royston Group')) {
             setSelectedGroups([groups[0]]);
         }
@@ -110,24 +108,27 @@ const WalkDiscoveryDashboard = () => {
     };
 
     fetchWalks();
-  }, []);
+  }, []); // Empty dependency array means this runs once on mount
 
   useEffect(() => {
     filterWalks();
-  }, [walks, selectedDays, selectedGroups, includePastWalks]);
+  }, [walks, selectedDays, selectedGroups, includePastWalks]); // Re-filter when dependencies change
 
   const filterWalks = () => {
     let filtered = [...walks];
 
+    // Filter by past walks
     if (!includePastWalks) {
       const now = new Date();
       filtered = filtered.filter(walk => new Date(walk?.walk_date) >= now);
     }
 
+    // Filter by groups
     if (selectedGroups.length > 0) {
       filtered = filtered.filter(walk => selectedGroups.includes(walk?.group_name));
     }
 
+    // Filter by days
     if (selectedDays.length > 0) {
       filtered = filtered.filter(walk => {
         const walkDate = new Date(walk?.walk_date);
@@ -137,22 +138,23 @@ const WalkDiscoveryDashboard = () => {
       });
     }
 
+    // Sort by date ascending
     filtered.sort((a, b) => new Date(a?.walk_date) - new Date(b?.walk_date));
 
     setFilteredWalks(filtered);
   };
 
   const handleDayToggle = (day) => {
-    setSelectedDays(prev =>
-      prev.includes(day)
+    setSelectedDays(prev => 
+      prev.includes(day) 
         ? prev.filter(d => d !== day)
         : [...prev, day]
     );
   };
 
   const handleGroupToggle = (group) => {
-    setSelectedGroups(prev =>
-      prev.includes(group)
+    setSelectedGroups(prev => 
+      prev.includes(group) 
         ? prev.filter(g => g !== group)
         : [...prev, group]
     );
@@ -160,8 +162,8 @@ const WalkDiscoveryDashboard = () => {
 
   const handleCalendarAdd = (walk, platform) => {
     const startDate = new Date(walk.walk_date);
-    const endDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000));
-
+    const endDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000)); // Assume 3 hour duration
+    
     const formatDateForCalendar = (date) => {
       return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     };
@@ -169,11 +171,11 @@ const WalkDiscoveryDashboard = () => {
     let title = walk.title;
     let description = walk.description || '';
     let location = '';
-
+    
     if (walk.postcode) {
       location = walk.postcode;
     }
-
+    
     if (walk.what3words) {
       description += `\n\nMeet point: ${walk.what3words}`;
     }
@@ -183,13 +185,14 @@ const WalkDiscoveryDashboard = () => {
         const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatDateForCalendar(startDate)}/${formatDateForCalendar(endDate)}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
         window.open(googleUrl, '_blank');
         break;
-
+        
       case 'outlook':
         const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(description)}&location=${encodeURIComponent(location)}`;
         window.open(outlookUrl, '_blank');
         break;
-
+        
       case 'apple':
+        // Generate .ics file
         const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Walk Viewer//Walk Event//EN
@@ -203,7 +206,7 @@ DESCRIPTION:${description.replace(/\n/g, '\\n')}
 LOCATION:${location}
 END:VEVENT
 END:VCALENDAR`;
-
+        
         const blob = new Blob([icsContent], { type: 'text/calendar' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -219,20 +222,25 @@ END:VCALENDAR`;
     setFacebookModal({ isOpen: true, walk });
   };
 
+  // --- FIX START ---
   const handleLocationClick = (postcode) => {
-    const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(postcode + ' UK')}`;
-    window.open(googleSearchUrl, '_blank');
+    // Use the direct Google Maps URL scheme
+    // This is generally more reliable and elegant than a Google web search
+    const googleMapsUrl = `https://maps.google.com/?q=${encodeURIComponent(postcode + ' UK')}`;
+    window.open(googleMapsUrl, '_blank');
   };
+  // --- FIX END ---
 
   const handleMeetClick = (what3words, type) => {
     const cleanW3W = what3words.replace(/^\/\/\//, '');
-
+    
     if (type === 'web') {
       const w3wUrl = `https://what3words.com/${cleanW3W}`;
       window.open(w3wUrl, '_blank');
     } else if (type === 'app') {
+      // Android app intent (works on Android devices with w3w app installed)
       const appUrl = `intent://what3words.com/${cleanW3W}#Intent;scheme=https;package=com.what3words.android;end`;
-      window.location.href = appUrl;
+      window.location.href = appUrl; // Use window.location.href to try and open app
     }
   };
 
@@ -240,10 +248,10 @@ END:VCALENDAR`;
     return (
       <div className="min-h-screen bg-gray-100 pt-16">
         <Helmet>
-          <title>Walk Discovery Dashboard - Walk Viewer</title>
-          <meta name="description" content="Discover and join local group hiking events with calendar integration and location services" />
+          <title>Group Walks Viewer</title>
+          <meta name="description" content="Discover group hikes - calendar integration and location support" />
         </Helmet>
-
+        
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -263,7 +271,7 @@ END:VCALENDAR`;
           <title>Walk Discovery Dashboard - Walk Viewer</title>
           <meta name="description" content="Discover and join local group hiking events with calendar integration and location services" />
         </Helmet>
-
+        
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -274,8 +282,8 @@ END:VCALENDAR`;
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">Unable to load walks</h3>
               <p className="text-gray-500 mb-4">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
+              <button 
+                onClick={() => window.location.reload()} 
                 className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg"
               >
                 Try Again
@@ -293,30 +301,29 @@ END:VCALENDAR`;
         <title>Walk Discovery Dashboard - Walk Viewer</title>
         <meta name="description" content="Discover and join local group hiking events with calendar integration and calendar services" />
       </Helmet>
-
+      
       <div className="max-w-4xl mx-auto px-4 py-6">
         <HeroIllustration />
-
-        <DayFilter
+        
+        <DayFilter 
           selectedDays={selectedDays}
           onDayToggle={handleDayToggle}
         />
-
-        <GroupFilter
+        
+        <GroupFilter 
           groups={availableGroups}
           selectedGroups={selectedGroups}
           onGroupToggle={handleGroupToggle}
         />
-
-        <WalkCounter
+        
+        <WalkCounter 
           filteredCount={filteredWalks.length}
           totalCount={walks.length}
-          // Pass null if lastChecked is null to avoid issues in WalkCounter's formatLastChecked
-          lastChecked={lastChecked || new Date()}
+          lastChecked={lastChecked || new Date()} // Fallback for initial render
           includePastWalks={includePastWalks}
           onTogglePastWalks={setIncludePastWalks}
         />
-
+        
         <div className="space-y-4">
           {filteredWalks.length === 0 ? (
             <div className="text-center py-12">
@@ -342,7 +349,7 @@ END:VCALENDAR`;
           )}
         </div>
       </div>
-
+      
       <FacebookShareModal
         walk={facebookModal.walk}
         isOpen={facebookModal.isOpen}
