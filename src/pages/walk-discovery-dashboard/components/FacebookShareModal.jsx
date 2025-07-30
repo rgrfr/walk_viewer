@@ -5,7 +5,7 @@ import Button from '../../../components/ui/Button';
 const FacebookShareModal = ({ walk, isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
 
-  if (!isOpen) return null;
+  if (!isOpen || !walk) return null; // Add !walk check for safety
 
   const generateFacebookText = () => {
     const date = new Date(walk.walk_date).toLocaleDateString('en-GB', {
@@ -23,15 +23,22 @@ const FacebookShareModal = ({ walk, isOpen, onClose }) => {
 
     let text = `🥾 Join us for a group walk!\n\n`;
     text += `📍 ${walk.title}\n`;
-    text += `📅 ${date} at ${time}\n`;
-    text += `📏 Distance: ${walk.distance} miles\n`;
     
+    // Add Group Name
+    if (walk.group_name) {
+      text += `👥 Group: ${walk.group_name}\n`;
+    }
+
+    text += `📅 ${date} at ${time}\n`;
+    text += `📏 Distance: ${walk.distance}\n`; // Removed 'miles' as per previous discussion
+
     if (walk.difficulty) {
       text += `⚡ Difficulty: ${walk.difficulty}\n`;
     }
     
     if (walk.description) {
-      text += `\n${walk.description}\n`;
+      // Sanitize description here as well, just in case
+      text += `\n${walk.description.replace(/\\'/g, "'")}\n`;
     }
     
     if (walk.postcode) {
@@ -41,19 +48,40 @@ const FacebookShareModal = ({ walk, isOpen, onClose }) => {
     if (walk.what3words) {
       text += `🎯 Meet point: ${walk.what3words}\n`;
     }
+
+    // Add Details URL
+    if (walk.details_url) {
+      text += `🔗 Full Details: ${walk.details_url}\n`;
+    }
     
     text += `\n#GroupWalk #Hiking #OutdoorActivity`;
     
     return text;
   };
 
-  const handleCopy = async () => {
+  const handleCopy = () => {
+    // Create a temporary textarea element to copy text from
+    const textarea = document.createElement('textarea');
+    textarea.value = generateFacebookText();
+    textarea.style.position = 'fixed'; // Prevent scrolling to bottom of page
+    textarea.style.opacity = '0'; // Hide it
+    document.body.appendChild(textarea);
+    textarea.select(); // Select the text
+
     try {
-      await navigator.clipboard.writeText(generateFacebookText());
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      // Use document.execCommand('copy') for broader compatibility in iframes
+      const successful = document.execCommand('copy');
+      if (successful) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        console.error('Failed to copy text using execCommand.');
+        // Fallback or user instruction if copy fails
+      }
     } catch (err) {
       console.error('Failed to copy text: ', err);
+    } finally {
+      document.body.removeChild(textarea); // Clean up the temporary element
     }
   };
 
