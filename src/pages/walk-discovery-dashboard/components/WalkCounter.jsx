@@ -50,7 +50,7 @@ const WalkCounter = ({ filteredCount, totalCount, lastChecked, includePastWalks,
               onChange={(e) => onTogglePastWalks(e.target.checked)}
               className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
             />
-            <span>include past walks. Bug to fix: please ensure any found walk is current & not cancelled</span>
+            <span>Include past walks. CHECK the deets as cancelled walks are still listed (bug) </span>
           </label>
         </div>
 
