@@ -50,14 +50,14 @@ const WalkCounter = ({ filteredCount, totalCount, lastChecked, includePastWalks,
               onChange={(e) => onTogglePastWalks(e.target.checked)}
               className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
             />
-            <span>Include past walks. CHECK the deets as cancelled walks are still listed (bug) </span>
+            <span>include past walks </span>
           </label>
         </div>
 
         {/* Website last checked feature - on a new line below on small screens, justified right */}
         <div className="flex items-center justify-end space-x-2 text-xs text-gray-500"> {/* justify-end pushes it right */}
           <Icon name="RefreshCw" size={14} />
-          <span>website last checked {formatLastChecked(lastChecked)}</span>
+          <span>website checked {formatLastChecked(lastChecked)}</span>
         </div>
       </div>
     </div>
